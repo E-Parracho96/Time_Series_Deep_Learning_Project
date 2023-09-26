@@ -32,10 +32,11 @@ def data_ingestion(file1_path, file2_path):
 
         df_1 = organize_file(df1)
 
-        df2 = pd.read_csv(file2_path)
+        # The sun_position_PT CSV has three columns: time, elevation (elev), and azimute (azim)
+        df2 = pd.read_csv(file2_path) 
         logging.info('Read the sun_Position_PT dataset as dataframe')
 
-        df2.iloc[0:35041,1:] # The sun_position_PT file has 1 more day, so we have to filter it
+        df2.iloc[0:35041,1:] # The sun_position_PT file has 1 more day, so we have to filter it and also filter the time column
         df_merged = df_1.join(df2)
 
         logging.info('Ingestion of the data is completed')
