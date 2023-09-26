@@ -45,7 +45,7 @@ def data_ingestion(file1_path, file2_path):
         raise CustomException(e,sys)
     
 # if __name__ == "__main__":
-#     file1_path = os.path.join('Dados_EDP\zKFdRou77JuivhIm.csv')
-#     file2_path = os.path.join('Dados_EDP\sun_position_PT.csv')
+#     file1_path = os.path.join('Dados\zKFdRou77JuivhIm.csv')
+#     file2_path = os.path.join('Dados\sun_position_PT.csv')
     
 #     df_result = data_ingestion(file1_path, file2_path)
