@@ -64,6 +64,7 @@ def feat_eng2(df):
         
         logging.info('The feat_eng2 is completed')
         return df_1
+    
     except Exception as e:
         raise CustomException(e,sys)
 

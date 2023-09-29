@@ -1,11 +1,12 @@
 import sys
+import os
 import numpy as np
 import pandas as pd
 from src.exception import CustomException
 from src.logger import logging
 
 
-def filter_night_out(df, frequency=24, days_lookback=14): # admitting we have 24 records per hour
+def forecasting_logic(df, frequency=24, days_lookback=14): # admitting we have 24 records per hour
     
     """This is a dynamic function. The logic here is having a rolling window of 14 days for each record
        which is already resampled hourly.
@@ -24,7 +25,7 @@ def filter_night_out(df, frequency=24, days_lookback=14): # admitting we have 24
     """
     
     try:
-        logging.info('Initializing filter_night_out logic implementaion')
+        logging.info('Initializing forecasting_logic logic implementaion')
         df_as_np = df.to_numpy()
         X, y = [], []
         total_days = len(df_as_np) // frequency # Number of days to analyse
@@ -39,8 +40,8 @@ def filter_night_out(df, frequency=24, days_lookback=14): # admitting we have 24
                 # Skip the iteration if there is any nan value in X_slice
                 if np.isnan(X_slice).any():
                     continue
-                # Skip the iteration if the sun elevation is <5 and the first value of X_slice is <= 0.0001
-                if (X_slice[0][1] < 5) & (X_slice[0][0] <= 0.0001):
+                # Skip the iteration if the sun elevation is <5 and the production_PV is <= 0.001
+                if (X_slice[0][1] < 5) & (X_slice[0][0] <= 0.001):
                     continue
                 
                 y_value = df_as_np[end_idx][0]  # Select PV value of the day after at the same timestamp
@@ -55,7 +56,7 @@ def filter_night_out(df, frequency=24, days_lookback=14): # admitting we have 24
                 if non_zero_count >= 1:
                     y.append(y_value)
 
-        logging.info('filter_night_out logic completed')
+        logging.info('forecasting_logic Completed')
         return np.array(X), np.array(y)
             
     except Exception as e:

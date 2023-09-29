@@ -17,8 +17,8 @@ def data_ingestion(file1_path, file2_path):
 
     """This function read the house file, the sun_position_PT file and join them."""
     try:
-        df1 = pd.read_csv(file1_path)
         logging.info('Read the house dataset as dataframe')
+        df1 = pd.read_csv(file1_path)
 
         # Check if essencial columns are in the dataframe  
         column_names = ['event_timestamp', 'producao_total']
