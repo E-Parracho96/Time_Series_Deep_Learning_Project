@@ -6,4 +6,6 @@ scikit-learn
 tensorflow
 keras
 dill
+pyyaml
+h5py
 -e .

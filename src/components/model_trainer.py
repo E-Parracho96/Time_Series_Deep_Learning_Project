@@ -14,25 +14,36 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.losses import MeanSquaredError
 from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.models import load_model
 
 from src.exception import CustomException
 from src.logger import logging
 from src.utils import save_object
 
-trained_model_file_path = os.path.join('..','..','Results','model.pkl')
 
 def split_train_val_test(X, y):
     """ Split train, validation and test, where
         train = 80%, validation = 10%, test = 10% """
-    
+
     logging.info('Initiating Train, Validation, and Test Split')
+    # TODO - size of the train validation and test size should be dynamic based on the % desired and not hardcoded
     X_train, y_train = X[:2786], y[:2786]
     X_val, y_val = X[2786:3135], y[2786:3135]
     X_test, y_test = X[3135:], y[3135:]
     logging.info('Train, Validation, and Test Split Finished')
 
     return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+def data_normalization_pred(x):
+    logging.info('Initiating Data Normalization')
+    # Fit the scaler using only the training data
+    scaler_X = MinMaxScaler()
+
+    x_norm = scaler_X.fit_transform(x.reshape(x.shape[0], -1))  # Fit and transform
+    x = x_norm.reshape(x.shape)
+
+    return x
+
 
 def data_normalization(X_train, y_train, X_val, y_val, X_test, y_test):
     """ The dataset variables has different scales, and that´s not good
@@ -60,14 +71,22 @@ def data_normalization(X_train, y_train, X_val, y_val, X_test, y_test):
 
     return X_train_norm, X_val_norm, X_test_norm, y_train_norm, y_val_norm, y_test_norm, scaler_y
 
+
 def LSTM_model(X_train_norm, X_val_norm, y_train_norm, y_val_norm):
-    
     logging.info('Initiating LSTM Model Training')
     model = Sequential()
-    model.add(InputLayer((14, 11))) # 14 samples, 11 variables
+    model.add(InputLayer((14, 11)))  # 14 samples, 11 variables
     model.add(LSTM(64))
     model.add(Dense(8, 'relu'))
     model.add(Dense(1, 'linear'))
+
+    checkpoint_path = "training_1/cp.ckpt"
+
+    # Create a callback that saves the model's weights
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                     save_weights_only=True,
+                                                     save_best_only=True,
+                                                     verbose=1)
 
     print(model.summary())
     print('\n')
@@ -77,46 +96,41 @@ def LSTM_model(X_train_norm, X_val_norm, y_train_norm, y_val_norm):
                   optimizer=Adam(learning_rate=0.001),
                   metrics=[RootMeanSquaredError()]
                   )
-    
+
     model_fit = model.fit(X_train_norm, y_train_norm,
-                              validation_data=(X_val_norm, y_val_norm),
-                              epochs=10
-                              )
+                          validation_data=(X_val_norm, y_val_norm),
+                          epochs=10,
+                          callbacks=[cp_callback]
+                          )
     print(model_fit)
     logging.info('LSTM Model Trained')
 
-    return model_fit
+    return model, checkpoint_path
 
-
-# save_object(
-#     file_path = self.model_trainer_config.trained_model_file_path,
-#     obj = model
-# )
 
 def evaluate_model(model, X_test_norm, y_test_norm, scaler_y):
     """The model is tested with X_test_norm dataset. After that the data is denormalized to have the values back again in
        normal kW scale, and then the predictions are evaluated with two evaluation metrics, r2_score and rmse"""
 
     logging.info('Start Evaluation process')
-    model = load_model('model/')
     y_test_predicted_norm = model.predict(X_test_norm).flatten()
     y_test_predicted_original_scale = scaler_y.inverse_transform(y_test_predicted_norm.reshape(-1, 1)).flatten()
     y_test_actual_original_scale = scaler_y.inverse_transform(y_test_norm.reshape(-1, 1)).flatten()
-    
-    plot = plot_predictions(model, y_test_predicted_original_scale, y_test_actual_original_scale, start=0, end=155)
-    
+
+    plot_predictions(y_test_predicted_original_scale, y_test_actual_original_scale)
+
     rmse = np.sqrt(mean_squared_error(y_test_actual_original_scale, y_test_predicted_original_scale))
-    prct_rmse = round(rmse*100,2)
+    prct_rmse = round(rmse * 100, 2)
     print("- Root Mean Squared Error: {} %".format(prct_rmse))
     r2_square = r2_score(y_test_actual_original_scale, y_test_predicted_original_scale)
-    prct_r2_square = round(r2_square*100,2)
-    logging.info("- R2 Score: {} %".format(prct_r2_square))
-    print(plot)
+    prct_r2_square = round(r2_square * 100, 2)
+    print("- R2 Score: {} %".format(prct_r2_square))
     logging.info('Evaluation process Finished')
     return prct_rmse, prct_r2_square
 
-def plot_predictions(model, X_test, y_test, start=0, end=155):
-    df = pd.DataFrame(data={'Predictions':X_test, 'Actuals':y_test})
+
+def plot_predictions(X_test, y_test, start=0, end=155):
+    df = pd.DataFrame(data={'Predictions': X_test, 'Actuals': y_test})
     plt.plot(df['Predictions'][start:end], label='PV Forecast')
     plt.plot(df['Actuals'][start:end], label='PV Actual')
 
@@ -125,5 +139,4 @@ def plot_predictions(model, X_test, y_test, start=0, end=155):
     plt.title('PV Production Forecast Analysis')
     plt.legend(loc='upper right')
     plt.show()
-    return 
-
+    return
