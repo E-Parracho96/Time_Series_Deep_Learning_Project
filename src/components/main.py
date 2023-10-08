@@ -50,8 +50,8 @@ def training(filelist):
 
 # TODO - working but still needs tidying
 def predict(filename='Dados/zKFdRou77JuivhIm.csv'):
+
     df = data_ingestion(filename, file2_path)
-    checkpoint_path = "training_1/cp.ckpt"
 
     # validar files com produções nulas - file 167 com produção anual = 0
     if df.production_PV.mean() == 0:
@@ -63,7 +63,7 @@ def predict(filename='Dados/zKFdRou77JuivhIm.csv'):
     ft_eng1 = feat_eng1(data_resample)
     ft_eng2 = feat_eng2(ft_eng1)
     ft_eng3 = feat_eng3(ft_eng2)
-    X, y = forecasting_logic(ft_eng3, frequency=24, days_lookback=14)  # not needed for prediction
+    X, y = forecasting_logic(ft_eng3, frequency=24, days_lookback=30)  # not needed for prediction
     X_train, y_train, X_val, y_val, X_test, y_test = split_train_val_test(X, y)
     X_test_norm = data_normalization_pred(X_test)
 
