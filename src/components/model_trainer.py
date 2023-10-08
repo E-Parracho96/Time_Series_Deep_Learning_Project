@@ -34,17 +34,13 @@ def split_train_val_test(X, y):
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-def data_normalization_pred(x, is_train=True):
+def data_normalization_pred(x):
     logging.info('Initiating Data Normalization')
     # Fit the scaler using only the training data
     scaler_X = MinMaxScaler()
 
-    if is_train:
-        x = scaler_X.fit_transform(x.reshape(x.shape[0], -1))  # Fit and transform
-    else:
-        x = scaler_X.transform(x.reshape(x.shape[0], -1))
-
-    x = x.reshape(x.shape)
+    x_norm = scaler_X.fit_transform(x.reshape(x.shape[0], -1))  # Fit and transform
+    x = x_norm.reshape(x.shape)
 
     return x
 

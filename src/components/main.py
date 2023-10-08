@@ -47,9 +47,11 @@ def training(filelist):
 
     return df_evaluation_metrics
 
-# TODO - not working, try to make it work
+
+# TODO - working but still needs tidying
 def predict(filename='Dados/zKFdRou77JuivhIm.csv'):
     df = data_ingestion(filename, file2_path)
+    checkpoint_path = "training_1/cp.ckpt"
 
     # validar files com produções nulas - file 167 com produção anual = 0
     if df.production_PV.mean() == 0:
@@ -62,14 +64,14 @@ def predict(filename='Dados/zKFdRou77JuivhIm.csv'):
     ft_eng2 = feat_eng2(ft_eng1)
     ft_eng3 = feat_eng3(ft_eng2)
     X, y = forecasting_logic(ft_eng3, frequency=24, days_lookback=14)  # not needed for prediction
-    X_train, y_train, X_val, y_val, X, y_test = split_train_val_test(X, y)
-    X = data_normalization_pred(X)
-
-    print(X.shape)
+    X_train, y_train, X_val, y_val, X_test, y_test = split_train_val_test(X, y)
+    X_test_norm = data_normalization_pred(X_test)
 
     model = load_model('model.keras')
-    yhat = model.predict(X, verbose=0)
+    yhat = model.predict(X_test_norm, verbose=0)
     print(yhat)
+    plt.plot(yhat)
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -83,4 +85,4 @@ if __name__ == "__main__":
     file2_path = args.file2_path
 
     training(filelist)
-    # predict()
+    predict()
