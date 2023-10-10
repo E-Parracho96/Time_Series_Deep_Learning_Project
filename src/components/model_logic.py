@@ -55,9 +55,12 @@ def forecasting_logic(df, frequency=24, days_lookback=14): # admitting we have 2
                 # Condition to decide if we include y_value
                 if non_zero_count >= 1:
                     y.append(y_value)
-
+                    
+        X = np.array(X)
+        y = np.array(y)
+        _,_,n_features = X.shape
         logging.info('forecasting_logic Completed')
-        return np.array(X), np.array(y)
+        return X, y, n_features, days_lookback
             
     except Exception as e:
         raise CustomException(e,sys)

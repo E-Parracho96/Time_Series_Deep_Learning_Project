@@ -5,6 +5,8 @@ from src.logger import logging
 
 
 def organize_file(df):
+    """Rename features from Portuguese to English and converting Timestamp into datetime"""
+
     df = df.rename(columns={'producao_total': 'production_PV', 'consumo_rede': 'consumption',
                             'injecao_rede': 'grid_injection'})
     df['event_timestamp'] = pd.to_datetime(df['event_timestamp'], unit='s')
